@@ -1,0 +1,92 @@
+indexvar i, j ::=
+metavar nat, k ::=
+metavar floating_number, n ::=
+metavar label, a {{ tex \alpha }} ::=
+
+grammar
+expression, e :: 'e_' ::=
+  | k            ::   :: nat
+  | n            ::   :: float
+  | [ ]          ::   :: empty          {{ tex \phi }}
+  | e '::' e'    ::   :: cons
+  | e + e'       ::   :: add
+  | reshape e s  ::   :: reshape
+
+type, t {{ tex \tau }} :: 't_' ::=
+  | tensor s       ::   :: tensor
+  | float          ::   :: float
+  | int            ::   :: int
+
+dimension, d {{ tex \delta }} :: 'd_' ::=
+  | a      ::   :: label
+  | k      ::   :: nat
+  | 1      :: M :: one
+  | 0      :: M :: zero
+  | d + d' :: M :: dim
+
+shape, s {{ tex \sigma }} :: 's_' ::=
+  | .                  ::   :: empty
+  | d                  :: M :: dimension
+  | d , s              ::   :: dims
+  | ( s )              :: M :: shape
+  | s , s'             :: M :: cat
+  | </ di // i />      :: M :: dims2
+
+
+terminals :: 'terminal_' ::=
+  | <:    ::   :: sub    {{ tex \sqsubseteq }}
+
+formula :: formula_ ::=
+  | judgement                   ::   :: judgement
+  | P i di                      ::   :: prod        {{ tex \prod\limits_[[i]] [[di]] }}
+  | formula = formula'          ::   :: eq
+
+defns
+Jop :: '' ::=
+
+  defn
+  t <: t'        ::      ::sub::'' by
+
+  ------------ :: t_sub_int
+  int <: float
+
+  ----------------- :: t_sub_num
+  float <: tensor .
+
+  ------------------------- :: t_broadcast1
+  tensor s <: tensor (1, s)
+
+  ------------------------------------- :: t_broadcast2
+  tensor (s, 1, s') <: tensor (s, k, s)
+
+  defn
+  e : t ::      ::type::'' by
+
+  ------- :: t_num
+  k : int
+
+  --------- :: t_float
+  n : float
+
+  ------------- :: t_empty
+  [] : tensor 0
+
+  e : tensor s
+  e' : tensor (d, s)
+  --------------------------- :: t_cons
+  e :: e' : tensor (d + 1, s)
+
+  e : t
+  e' : t
+  ---------- :: t_add
+  e + e' : t
+
+  e : tensor </ dj' // j />
+  P i di = P j dj'
+  ---------------------------------------------- :: t_reshape
+  reshape e </ di // i /> : tensor </ di // i />
+
+  e : t
+  t <: t'
+  ------- :: t_sub
+  e : t'
